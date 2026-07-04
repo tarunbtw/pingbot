@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PingBot — Never let it sleep</title>
+  <meta name="description" content="PingBot pings your free-tier deployments every 2 minutes so they're always warm and ready." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page" id="page">
+
+    <nav class="landing-nav">
+      <div class="nav-left">
+        <div class="brand">
+          <span class="brand-dot"></span>
+          PingBot
+        </div>
+      </div>
+      <div class="nav-right">
+        <a class="nav-link" href="dashboard.html">Dashboard</a>
+        <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+          <!-- sun icon (shown in dark mode) -->
+          <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          <!-- moon icon (shown in light mode) -->
+          <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <span class="eyebrow">
+        <span class="eyebrow-dot"></span>
+        Runs every 2 minutes, forever
+      </span>
+
+      <h1>Your apps,<br /><span class="dim">never asleep.</span></h1>
+
+      <p class="sub">
+        Free-tier hosts spin your app down when idle. PingBot quietly
+        visits it before that happens — so it's already warm the moment
+        someone shows up.
+      </p>
+
+      <div class="heartbeat" aria-hidden="true">
+        <span class="hb-dot"></span>
+        next sweep in <span class="hb-num" id="hb-countdown">2:00</span>
+      </div>
+
+      <div class="hero-cta">
+        <a href="dashboard.html" class="btn btn-primary btn-lg">Open dashboard</a>
+        <a href="https://github.com" target="_blank" rel="noopener" class="btn btn-secondary btn-lg">View source</a>
+      </div>
+    </section>
+
+    <section class="features-section">
+      <div class="features-grid">
+        <div class="feature">
+          <div class="feature-label">No server</div>
+          <div class="feature-desc">Runs on a serverless function that wakes on demand and exits — nothing sits idle billing you.</div>
+        </div>
+        <div class="feature">
+          <div class="feature-label">No accounts</div>
+          <div class="feature-desc">Built for one person. Add a URL and it's tracked — no login, no setup screens, no friction.</div>
+        </div>
+        <div class="feature">
+          <div class="feature-label">No downtime</div>
+          <div class="feature-desc">An external scheduler triggers a sweep every 2 minutes, rain or shine, around the clock.</div>
+        </div>
+      </div>
+    </section>
+
+
+
+  </div>
+
+  <script>
+    // ── Theme toggle ──────────────────────────────────────────────────
+    const html        = document.documentElement;
+    const themeToggle = document.getElementById('theme-toggle');
+    const iconSun     = document.getElementById('icon-sun');
+    const iconMoon    = document.getElementById('icon-moon');
+
+    const saved = localStorage.getItem('pb-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let isDark = saved ? saved === 'dark' : prefersDark;
+
+    function applyTheme() {
+      if (isDark) {
+        html.classList.remove('light');
+        iconSun.style.display  = 'block';
+        iconMoon.style.display = 'none';
+      } else {
+        html.classList.add('light');
+        iconSun.style.display  = 'none';
+        iconMoon.style.display = 'block';
+      }
+      localStorage.setItem('pb-theme', isDark ? 'dark' : 'light');
+    }
+
+    themeToggle.addEventListener('click', () => {
+      isDark = !isDark;
+      applyTheme();
+    });
+
+    applyTheme();
+
+    // ── Countdown ─────────────────────────────────────────────────────
+    const el = document.getElementById('hb-countdown');
+    let seconds = 120;
+    setInterval(() => {
+      seconds = seconds <= 0 ? 120 : seconds - 1;
+      const m = Math.floor(seconds / 60);
+      const s = String(seconds % 60).padStart(2, '0');
+      el.textContent = `${m}:${s}`;
+    }, 1000);
+  </script>
+</body>
+</html>

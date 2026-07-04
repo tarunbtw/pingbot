@@ -1,0 +1,14 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Without this, the frontend's calls to /api/urls and cron-job.org's
+# calls to /api/ping-all would 404 — Netlify Functions are served at
+# /.netlify/functions/<name> by default, not at /api/<name>.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200

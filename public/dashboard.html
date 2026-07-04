@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — PingBot</title>
+  <meta name="description" content="Manage the URLs PingBot keeps warm every 2 minutes." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page" id="page">
+
+    <!-- Sticky Header -->
+    <header class="dash-header">
+      <div class="dash-header-inner">
+        <div class="dash-logo">
+          <span class="dash-logo-dot"></span>
+          <span class="dash-logo-text">PingBot</span>
+        </div>
+        <div class="dash-header-right">
+          <a class="back-link" href="index.html">Home</a>
+          <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+            <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+            <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="dash-main">
+
+      <!-- Page title -->
+      <div class="dash-page-title">
+        <div>
+          <h1>Monitored URLs</h1>
+          <p>Keep your free-tier apps alive — automatically.</p>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total URLs</div>
+          <div class="stat-value" id="stat-total">—</div>
+          <div class="stat-sub">being monitored</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Healthy</div>
+          <div class="stat-value green" id="stat-healthy">—</div>
+          <div class="stat-sub">last ping succeeded</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Issues</div>
+          <div class="stat-value red" id="stat-issues">—</div>
+          <div class="stat-sub">failed or pending</div>
+        </div>
+      </div>
+
+      <!-- Add URL card -->
+      <div class="card" aria-label="Add a URL to monitor">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Add URL</div>
+            <div class="card-subtitle">Paste any http(s) URL to start monitoring</div>
+          </div>
+        </div>
+        <div class="add-form-inner">
+          <form id="add-form" class="add-form" novalidate>
+            <div class="input-row">
+              <input
+                id="url-input"
+                type="url"
+                class="url-input"
+                placeholder="https://your-app.onrender.com"
+                autocomplete="off"
+                spellcheck="false"
+                aria-label="URL to monitor"
+                required
+              />
+              <button id="add-btn" type="submit" class="btn btn-primary">
+                <span class="btn-label">Add URL</span>
+                <span class="btn-spinner" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p id="form-error" class="form-error" role="alert" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+
+      <!-- URL list card -->
+      <div class="card" aria-label="Monitored URLs">
+        <div class="card-header">
+          <div>
+            <div class="card-title">URL List</div>
+            <div class="card-subtitle">Pinged every 2 minutes via cron-job.org</div>
+          </div>
+          <span id="url-count" class="url-count-badge"></span>
+        </div>
+
+        <div id="list-container" class="list-container">
+          <!-- Populated by app.js -->
+          <div class="skeleton-list" aria-label="Loading…">
+            <div class="skeleton-row"></div>
+            <div class="skeleton-row"></div>
+            <div class="skeleton-row"></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+
+
+  </div>
+
+  <!-- Confirm modal -->
+  <div id="confirm-overlay" class="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-title" hidden>
+    <div class="confirm-box">
+      <p class="confirm-title" id="confirm-title">Remove URL?</p>
+      <p id="confirm-msg" class="confirm-msg"></p>
+      <div class="confirm-actions">
+        <button id="confirm-cancel" class="btn btn-ghost">Cancel</button>
+        <button id="confirm-ok" class="btn btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Theme toggle ──────────────────────────────────────────────────
+    const html        = document.documentElement;
+    const themeToggle = document.getElementById('theme-toggle');
+    const iconSun     = document.getElementById('icon-sun');
+    const iconMoon    = document.getElementById('icon-moon');
+
+    const saved = localStorage.getItem('pb-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let isDark = saved ? saved === 'dark' : prefersDark;
+
+    function applyTheme() {
+      if (isDark) {
+        html.classList.remove('light');
+        iconSun.style.display  = 'block';
+        iconMoon.style.display = 'none';
+      } else {
+        html.classList.add('light');
+        iconSun.style.display  = 'none';
+        iconMoon.style.display = 'block';
+      }
+      localStorage.setItem('pb-theme', isDark ? 'dark' : 'light');
+    }
+
+    themeToggle.addEventListener('click', () => {
+      isDark = !isDark;
+      applyTheme();
+    });
+
+    applyTheme();
+  </script>
+
+  <script src="app.js"></script>
+</body>
+</html>
